@@ -1,4 +1,4 @@
-import { findCachedPostBySlug } from "@/lib/post/queries";
+import { findPostBySlugCached } from "@/lib/post/queries";
 import { Metadata } from "next";
 import { SinglePost } from "@/components/SinglePost";
 import { Suspense } from "react";
@@ -10,7 +10,7 @@ type PostSlugPageProps = {
 
 export async function generateMetadata({ params }: PostSlugPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await findCachedPostBySlug(slug).catch(() => null);
+  const post = await findPostBySlugCached(slug).catch(() => null);
   if (!post) {
     return {
       title: "Página não encontrada",
