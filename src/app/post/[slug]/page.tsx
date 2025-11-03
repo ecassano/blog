@@ -1,19 +1,21 @@
-import { findPostBySlugCached } from "@/lib/post/queries";
-import { Metadata } from "next";
-import { SinglePost } from "@/components/SinglePost";
-import { Suspense } from "react";
-import { SpinLoader } from "@/components/SpinLoader";
+import { findPostBySlugCached } from '@/lib/post/queries/public';
+import { Metadata } from 'next';
+import { SinglePost } from '@/components/SinglePost';
+import { Suspense } from 'react';
+import { SpinLoader } from '@/components/SpinLoader';
 
 type PostSlugPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: PostSlugPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PostSlugPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await findPostBySlugCached(slug).catch(() => null);
   if (!post) {
     return {
-      title: "Página não encontrada",
+      title: 'Página não encontrada',
     };
   }
   return {

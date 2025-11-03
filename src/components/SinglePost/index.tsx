@@ -1,4 +1,4 @@
-import { findPostBySlugCached } from '@/lib/post/queries';
+import { findPostBySlugCached } from '@/lib/post/queries/public';
 import Image from 'next/image';
 import { PostHeading } from '../PostHeading';
 import { PostDate } from '../PostDate';
@@ -22,7 +22,9 @@ export async function SinglePost({ slug }: SinglePostProps) {
           height={720}
         />
 
-        <PostHeading as='h1' url={`/post/${post.slug}`}>{post.title}</PostHeading>
+        <PostHeading as='h1' url={`/post/${post.slug}`}>
+          {post.title}
+        </PostHeading>
 
         <p>
           {post.author} | <PostDate dateTime={post.createdAt} />

@@ -1,8 +1,6 @@
-import { PostCoverImage } from "../PostCoverImage";
-import { PostSummary } from "../PostSummary";
-import { findAllCachedPublicPosts } from "@/lib/post/queries";
-
-
+import { PostCoverImage } from '../PostCoverImage';
+import { PostSummary } from '../PostSummary';
+import { findAllCachedPublicPosts } from '@/lib/post/queries/public';
 
 export async function PostsList() {
   const posts = await findAllCachedPublicPosts();
@@ -33,9 +31,8 @@ export async function PostsList() {
               excerpt={post.excerpt}
             />
           </div>
-        )
-      }
-      )}
+        );
+      })}
     </div>
   );
 }

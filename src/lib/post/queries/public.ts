@@ -14,9 +14,9 @@ export const findAllCachedPublicPosts = unstable_cache(
   { tags: ['posts'], revalidate: 60 },
 );
 
-export const findPostBySlugCached = (slug: string) =>
-  unstable_cache(
-    cache(async (slug: string) => {
+export const findPostBySlugCached = cache((slug: string) => {
+  return unstable_cache(
+    async (slug: string) => {
       const post = await postRepository
         .findBySlugPublished(slug)
         .catch(() => undefined);
@@ -24,12 +24,11 @@ export const findPostBySlugCached = (slug: string) =>
         throw new Error(`Post with slug ${slug} not found`);
       }
       return post;
-    }),
-    ['posts'],
-    {
-      tags: [`post-${slug}`],
     },
+    [`post-${slug}`],
+    { tags: [`post-${slug}`] },
   )(slug);
+});
 
 export const findCachedPostById = cache(
   async (id: string) => await postRepository.findById(id),
