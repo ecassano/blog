@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
-import { findAllPostAdmin } from '@/lib/post/queries/admin';
 import { Suspense } from 'react';
-import PostListAdmin from '@/components/PostsListAdmin';
+import PostListAdmin from '@/components/admin/PostsListAdmin';
 import { SpinLoader } from '@/components/SpinLoader';
 
 export const dynamic = 'force-dynamic';

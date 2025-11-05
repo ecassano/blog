@@ -3,7 +3,7 @@ import { findAllPostAdmin } from '@/lib/post/queries/admin';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { DeletePostButton } from '@/components/admin/DeletePostButton';
-import ErrorMessage from '../ErrorMessage';
+import ErrorMessage from '@/components/ErrorMessage';
 
 export const dynamic = 'force-dynamic';
 
