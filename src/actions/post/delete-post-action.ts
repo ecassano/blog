@@ -1,16 +1,17 @@
 'use server';
 
-import { drizzleDb } from '@/db/drizzle';
-import { postsTable } from '@/db/drizzle/schemas';
 import { postRepository } from '@/repositories/post';
-import { asyncDelay } from '@/utils/async-delay';
-import { logColor } from '@/utils/log-color';
-import { eq } from 'drizzle-orm';
 import { revalidateTag } from 'next/cache';
+import { verifyLoginSession } from '@/lib/login/manage-login';
 
 export async function deletePostAction(id: string) {
-  await asyncDelay(2000);
-  logColor('' + id);
+  const isAuthenticated = await verifyLoginSession();
+
+  if (!isAuthenticated) {
+    return {
+      error: 'Faça login em outra aba antes de apagar.',
+    };
+  }
 
   if (!id || typeof id !== 'string') {
     return {
@@ -18,15 +19,20 @@ export async function deletePostAction(id: string) {
     };
   }
 
-  const post = await postRepository.findById(id).catch(() => undefined);
+  let post;
+  try {
+    post = await postRepository.delete(id);
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      return {
+        error: e.message,
+      };
+    }
 
-  if (!post) {
     return {
-      error: 'Post não existe',
+      error: 'Erro desconhecido',
     };
   }
-
-  await drizzleDb.delete(postsTable).where(eq(postsTable.id, id));
 
   revalidateTag('posts', { expire: 60 * 60 * 24 });
   revalidateTag(`post-${post.slug}`, { expire: 60 * 60 * 24 });

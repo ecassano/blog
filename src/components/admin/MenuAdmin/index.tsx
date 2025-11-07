@@ -1,27 +1,30 @@
 'use client';
+
+import { logoutAction } from '@/actions/login/logout-action';
 import clsx from 'clsx';
 import {
   CircleXIcon,
   FileTextIcon,
+  HourglassIcon,
   HouseIcon,
+  LogOutIcon,
   MenuIcon,
   PlusIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, startTransition } from 'react';
+import { useLayoutEffect, useState, useTransition } from 'react';
 
 export function MenuAdmin() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (isOpen) {
-      startTransition(() => {
-        setIsOpen(false);
-      });
-    }
-  }, [pathname, isOpen]);
+  useLayoutEffect(() => {
+    startTransition(() => {
+      setIsOpen(false);
+    });
+  }, [pathname]);
 
   const navClasses = clsx(
     'bg-slate-900 text-slate-100 rounded-lg',
@@ -44,6 +47,14 @@ export function MenuAdmin() {
     'sm:hidden',
   );
 
+  function handleLogout(e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) {
+    e.preventDefault();
+
+    startTransition(async () => {
+      await logoutAction();
+    });
+  }
+
   return (
     <nav className={navClasses}>
       <button
@@ -64,8 +75,10 @@ export function MenuAdmin() {
           </>
         )}
       </button>
+
       <a className={linkClasses} href='/' target='_blank'>
         <HouseIcon />
+        Home
       </a>
 
       <Link className={linkClasses} href='/admin/post'>
@@ -77,6 +90,22 @@ export function MenuAdmin() {
         <PlusIcon />
         Criar post
       </Link>
+
+      <a onClick={handleLogout} href='#' className={linkClasses}>
+        {isPending && (
+          <>
+            <HourglassIcon />
+            Aguarde...
+          </>
+        )}
+
+        {!isPending && (
+          <>
+            <LogOutIcon />
+            Sair
+          </>
+        )}
+      </a>
     </nav>
   );
 }

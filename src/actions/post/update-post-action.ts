@@ -1,25 +1,27 @@
 'use server';
-import { makePartialPublicPost, PublicPost } from '@/dto/post/dto';
-import { PostCreateSchema } from '@/lib/post/validations';
-import { PostModel } from '@/models/post/post-model';
-import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
-import { v4 as uuidV4 } from 'uuid';
-import { makeSlugFromText } from '@/utils/make-slug-from-text';
-import { revalidateTag } from 'next/cache';
-import { redirect } from 'next/navigation';
+
+import {
+  makePartialPublicPost,
+  makePublicPostFromDb,
+  PublicPost,
+} from '@/dto/post/dto';
+import { PostUpdateSchema } from '@/lib/post/validations';
 import { postRepository } from '@/repositories/post';
+import { getZodErrorMessages } from '@/utils/get-zod-error-messages';
+import { revalidateTag } from 'next/cache';
+import { makeRandomString } from '@/utils/make-random-string';
 import { verifyLoginSession } from '@/lib/login/manage-login';
 
-type CreatePostActionState = {
+type UpdatePostActionState = {
   formState: PublicPost;
   errors: string[];
   success?: string;
 };
 
-export async function createPostAction(
-  prevState: CreatePostActionState,
+export async function updatePostAction(
+  prevState: UpdatePostActionState,
   formData: FormData,
-): Promise<CreatePostActionState> {
+): Promise<UpdatePostActionState> {
   const isAuthenticated = await verifyLoginSession();
 
   if (!(formData instanceof FormData)) {
@@ -29,8 +31,19 @@ export async function createPostAction(
     };
   }
 
+  console.log('TESTING FORM DATA', formData);
+
+  const id = formData.get('id')?.toString() || '';
+
+  if (!id || typeof id !== 'string') {
+    return {
+      formState: prevState.formState,
+      errors: ['ID inválido'],
+    };
+  }
+
   const formDataToObj = Object.fromEntries(formData.entries());
-  const zodParsedObj = PostCreateSchema.safeParse(formDataToObj);
+  const zodParsedObj = PostUpdateSchema.safeParse(formDataToObj);
 
   if (!isAuthenticated) {
     return {
@@ -48,30 +61,33 @@ export async function createPostAction(
   }
 
   const validPostData = zodParsedObj.data;
-  const newPost: PostModel = {
+  const newPost = {
     ...validPostData,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    id: uuidV4(),
-    slug: makeSlugFromText(validPostData.title),
   };
 
+  let post;
   try {
-    await postRepository.create(newPost);
+    post = await postRepository.update(id, newPost);
   } catch (e: unknown) {
     if (e instanceof Error) {
       return {
-        formState: newPost,
+        formState: makePartialPublicPost(formDataToObj),
         errors: [e.message],
       };
     }
 
     return {
-      formState: newPost,
+      formState: makePartialPublicPost(formDataToObj),
       errors: ['Erro desconhecido'],
     };
   }
 
   revalidateTag('posts', { expire: 1 });
-  redirect(`/admin/post/${newPost.id}?created=1`);
+  revalidateTag(`post-${post.slug}`, { expire: 1 });
+
+  return {
+    formState: makePublicPostFromDb(post),
+    errors: [],
+    success: makeRandomString(),
+  };
 }
